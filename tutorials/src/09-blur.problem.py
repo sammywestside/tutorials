@@ -12,13 +12,15 @@ import time
 def convolution_with_opencv(image, kernel):
     # Flip the kernel as opencv filter2D function is a
     # Correlation not a convolution
+    kernel = cv2.flip(kernel, -1)
 
-    # When ddepth=-1, the output image will have the same depth as the source.
+    # When depth=-1, the output image will have the same depth as the source.
+    ddepth = -1
 
     # Run filtering
-
+    result = cv2.filter2D(image, ddepth, kernel)
     # Return result
-    return
+    return result
 
 
 def show_kernel(kernel):
@@ -31,7 +33,7 @@ def show_kernel(kernel):
     # Scale kernel to make it visually more appealing
     kernel_img = cv2.normalize(kernel, kernel, 0, 255, cv2.NORM_MINMAX, cv2.CV_8UC1)
     cv2.imshow(title_kernel, kernel_img)
-    cv2.waitKey(0)
+    # cv2.waitKey(0)
 
 
 def show_resulting_images(image, result):
@@ -55,32 +57,38 @@ def show_resulting_images(image, result):
 # Load the image.
 image_name = "./tutorials/data/images/Bumbu_Rawon.jpg"
 image = cv2.imread(image_name, cv2.IMREAD_GRAYSCALE)
-# image = cv2.resize(image, (320,213))
+# image = cv2.resize(image, (320, 213))
 
-# TODO Define kernel
-kernel = "TODO: define this variable"
 
 # TODO Define kernel size
-kernel_size = "TODO: define this variable"
+kernel_size = 5
 
 # TODO Define Gaussian standard deviation (sigma). If it is non-positive,
 # It is computed from kernel_size as
 # sigma = 0.3*((ksize-1)*0.5 - 1) + 0.8
-sigma = "TODO: define this variable"
+sigma = -1 
 
 # TODO Create the kernel with OpenCV
+# kernel = cv2.getGaussianKernel(kernel_size, sigma, cv2.CV_32F)
+kernel = np.array([[1, 0, -1],
+                  [1, 0, -1],
+                  [1, 0, -1]], np.float32)
+# kernel = kernel * np.transpose(kernel)
+print(kernel)
+# kernel = kernel / kernel.sum()
 
 # Visualize the kernel
 show_kernel(kernel)
 
 # TODO Run convolution and measure the time it takes
+
 # Start time to calculate computation duration
-start = "TODO: define this variable"
+start = time.time()
 # Run the convolution and write the resulting image into the result variable
-result = "TODO: define this variable"
+result = convolution_with_opencv(image, kernel)
 
 # End time after computation
-end = "TODO: define this variable"
+end = time.time()
 
 # Print timing results
 print(
@@ -91,7 +99,7 @@ print(
     "and a kernel size of",
     kernel.shape[0],
     "by",
-    kernel.shape[1],
+    kernel.shape[0],
     "took",
     end - start,
     "seconds.",

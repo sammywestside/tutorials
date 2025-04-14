@@ -32,10 +32,12 @@ hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 # Create a mask
 mask = cv2.inRange(hsv, lower_green, upper_green)
 
-# TODO Modify the mask image with dilation or erosion 
+# TODO Modify the mask image with dilation or erosion
 # in order to avoid very small connected components
 
 # TODO Find connected components
+connectivity = 4
+(numLabels, labels, stats, centroids) = cv2.connectedComponentsWithStats(mask, connectivity, cv2.CV_32S)
 
 # TODO Loop over all (reasonable) found connected components
 

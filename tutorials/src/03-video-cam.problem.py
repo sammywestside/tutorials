@@ -7,6 +7,7 @@ import numpy as np
 import cv2
 
 # TODO Capture webcam image
+vid = cv2.capture
 
 # TODO Get camera image parameters from get()
 
