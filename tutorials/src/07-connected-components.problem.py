@@ -34,6 +34,13 @@ mask = cv2.inRange(hsv, lower_green, upper_green)
 
 # TODO Modify the mask image with dilation or erosion
 # in order to avoid very small connected components
+def dilation(img, size, shape):
+    kernel = cv2.getStructuringElement(shape, (2 * size +1, 2 * size + 1), (size, size))
+    return cv2.dilate(img, kernel)
+
+def erosion(img, size, shape):
+    kernel = cv2.getStructuringElement(shape, (2 * size +1, 2 * size + 1), (size, size))
+    return cv2.erode(img, kernel)
 
 # TODO Find connected components
 connectivity = 4
