@@ -13,7 +13,6 @@ import numpy as np
 # Setup SimpleBlobDetector parameters.
 params = cv2.SimpleBlobDetector_Params()
 
-
 def detect_draw_and_show_blobs(img):
     # Determine the used global variables
     global params, window_name
