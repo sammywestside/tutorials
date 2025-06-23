@@ -47,7 +47,7 @@ class Descriptor(Enum):
         cv2.waitKey(0)
 
     def getSize(self):
-        """
+        """qq
         Get the length of the descriptor vector
         """
 

@@ -33,7 +33,10 @@ class Descriptor(Enum):
             # TODO Implement the computation of the descriptor vector by using np.ravel and cv2.resize
             # The descriptor vector should simply be the resized image (32x32) in row-major order with
             # each color channel one after one
-            return -1
+
+            vector = np.ravel(cv2.resize(cv2.rotate(img, cv2.ROTATE_90_COUNTERCLOCKWISE), (32, 32)), "F")
+
+            return vector
 
     def testCompute(self, img):
         """
@@ -53,7 +56,7 @@ class Descriptor(Enum):
 
         if self is Descriptor.COLOR32:
             # TODO Implement this helper method that returns the size/length of the descriptor
-            return -1
+            return 32 * 32 * 3
 
 
 class TrainingSet:
@@ -106,18 +109,26 @@ class TrainingSet:
 
         # TODO Take the image data from the data set at index, reshape it and visualize it
         # Note that it is sufficient to take only one color channel
-        test_img = -1
+        # test_img = np.uint8(self.trainData[index, 0:1024]).reshape(32, 32)
+        test_img = self.img_files[index][0]
         cv2.imshow(window_title, test_img)
         cv2.waitKey(0)
-
-
-def classify_knn(trainData, sample, k):
+  
+ 
+def classify_knn(trainData, sample, k): 
     """
     Returns the dominating category in the k nearest neighbors
     """
 
     # TODO Implement knn classifier as explained here:
     # https://docs.opencv.org/4.x/d5/d26/tutorial_py_knn_understanding.html
+
+    knn = cv2.ml.KNearest.create()
+    knn.train(trainData.trainData, cv2.ml.ROW_SAMPLE, trainData.responses)
+
+    ret, result, neighbors, dist = knn.findNearest(sample, k)
+
+    return trainData.categories[int(ret)]
 
 
 def run_test_on_folder(trainData, folder_name, k):
@@ -150,7 +161,8 @@ def run_test_on_folder(trainData, folder_name, k):
 def main():
     # Initialize the training set and load CIFAR-10 data
     trainData = TrainingSet()
-    trainData.loadCifar10("./data/cifar-10-batches-py/data_batch_1", "./data/cifar-10-batches-py/batches.meta")
+    trainData.loadCifar10("./tutorials/data/cifar/cifar-10-batches-py/data_batch_1",
+                          "./tutorials/data/cifar/cifar-10-batches-py/batches.meta")
 
     # Create an image for visual debugging
     cv2.namedWindow(window_title, cv2.WINDOW_GUI_NORMAL)
@@ -160,7 +172,7 @@ def main():
 
     # Test a bunch of images
     # TODO Define an appropriate number of neighbours (k)
-    run_test_on_folder(trainData, "./data/cifar/", k=-1)
+    run_test_on_folder(trainData, "./tutorials/data/cifar/", k=5)
 
 
 if __name__ == "__main__":
