@@ -1,16 +1,20 @@
 import numpy as np
 import cv2
 from collections import defaultdict
-from ultralytics import YOLO  # pip install ultralytics needed
+from ultralytics import YOLO, SAM, ASSETS, FastSAM  # pip install ultralytics needed
 
 
 # load model (download before running from https://github.com/ultralytics/assets/releases/download/v0.0.0/yolov8n.pt)
 model = YOLO("./tutorials/data/models/yolov8n.pt")
-
+model_sam = FastSAM('./tutorials.data/models/FastSAM-s.pt')
 # capture webcam image
 cap = cv2.VideoCapture(0)
+clicked_point = None
 
-track_history = defaultdict(lambda: [])
+def click_event(event, x, y, flags, param):
+    global clicked_point
+    if event == cv2.EVENT_LBUTTONDOWN:
+        clicked_point = [x,y]
 
 # get camera image parameters from get()
 width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -26,6 +30,7 @@ print('  Autofocus = ' + str(focus))
 
 title = 'Video image'
 cv2.namedWindow(title, cv2.WINDOW_FREERATIO)  # Note that window parameters have no effect on MacOS
+cv2.setMouseCallback(title, click_event)
 print('Press q to close the window.')
 
 while True:
@@ -37,7 +42,8 @@ while True:
         # HINT use model.predict(source=img, stream=True, show=False)
         # and not this example: https://docs.ultralytics.com/modes/predict/#streaming-source-for-loop
         results = model.predict(source=img, stream=True, show=False)
-        # TODO parse results and draw bounding boxes on img
+
+        # # TODO parse results and draw bounding boxes on img
         for result in results:
             boxes = result.boxes
             names = result.names
@@ -55,9 +61,22 @@ while True:
                 cv2.putText(img, name, (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1, cv2.LINE_AA)
                 score = box.conf.numpy()[0]
                 cv2.putText(img, str(score), (x1, y1 + 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1, cv2.LINE_AA)
+        
+        if clicked_point is not None:
+            results_sam = model_sam(frame, device="cpu", retina_masks=True, imgsz=512, 
+                                    points=[clicked_point], labels=[1], conf=0.4, iou=0.9)
+
+            if results_sam and hasattr(results_sam[0], 'masks') and results_sam[0].masks is not None:
+                alpha = 0.5
+                overlay = img.copy()
+                
+                masks = results_sam[0].masks.data
+                for mask in masks:
+                    mask_np = mask.cpu().numpy().astype('uint8') * 255
+                    overlay[mask_np == 255] = (0, 0, 255)
+                    img = cv2.addWeighted(overlay, alpha, frame, 1 - alpha, 0)
         # show image with bounding boxes
         cv2.imshow(title, img)
-
         # press q to close the window
         if cv2.waitKey(10) == ord('q'):
             break
